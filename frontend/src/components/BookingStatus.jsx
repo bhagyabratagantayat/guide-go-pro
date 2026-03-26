@@ -1,143 +1,117 @@
 import React, { useState, useEffect } from 'react';
-import { Loader2, ShieldCheck, MapPin, Phone, MessageSquare } from 'lucide-react';
+import { Clock, ShieldCheck, User, Star, X, Info } from 'lucide-react';
+import Card from './ui/Card';
+import Button from './ui/Button';
 
 const BookingStatus = ({ status, guide, otp, onCancel }) => {
-    const [tick, setTick] = useState(0);
+  const [timer, setTimer] = useState(0);
 
-    useEffect(() => {
-        let interval;
-        if (status === 'ongoing') {
-            interval = setInterval(() => setTick(t => t + 1), 1000);
-        }
-        return () => clearInterval(interval);
-    }, [status]);
+  useEffect(() => {
+    let interval;
+    if (status === 'ongoing') {
+      interval = setInterval(() => {
+        setTimer((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setTimer(0);
+    }
+    return () => clearInterval(interval);
+  }, [status]);
 
-    if (status === 'idle') return null;
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
-    return (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-md px-4 z-[1000] animate-slide-up">
-            <div className="bg-white rounded-3xl shadow-2xl p-6 border border-gray-100">
-                
-                {status === 'searching' && (
-                    <div className="text-center py-4">
-                        <div className="flex justify-center mb-4">
-                            <Loader2 className="size-12 text-blue-600 animate-spin" />
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">Finding your Guide...</h3>
-                        <p className="text-gray-500 mb-6">Broadcasting your request to nearby professional guides in Odisha.</p>
-                        <button 
-                            onClick={onCancel}
-                            className="w-full py-3 bg-gray-50 text-gray-500 rounded-2xl font-bold hover:bg-gray-100 transition-colors"
-                        >
-                            Cancel Request
-                        </button>
-                    </div>
-                )}
+  if (status === 'idle') return null;
 
-                {status === 'accepted' && guide && (
-                    <div>
-                        <div className="flex items-center mb-6">
-                            <div className="bg-green-50 text-green-600 px-3 py-1 rounded-full text-xs font-bold flex items-center">
-                                <ShieldCheck className="size-3 mr-1" /> GUIDE FOUND
-                            </div>
-                        </div>
-
-                        <div className="flex items-center mb-6">
-                            <img src={guide.profilePhoto} alt={guide.guideName} className="size-20 rounded-2xl object-cover shadow-md mr-4" />
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-900">{guide.guideName}</h3>
-                                <p className="text-sm text-gray-500">Your professional guide is arriving</p>
-                            </div>
-                        </div>
-
-                        <div className="bg-blue-50 rounded-2xl p-4 mb-6 flex justify-between items-center">
-                            <div>
-                                <p className="text-xs text-blue-600 font-bold uppercase tracking-wider mb-1">Share OTP to start</p>
-                                <p className="text-3xl font-black text-blue-700 tracking-widest">{otp}</p>
-                            </div>
-                            <div className="flex gap-2">
-                                <button className="p-3 bg-white rounded-xl shadow-sm text-gray-700 hover:text-blue-600 transition-colors">
-                                    <Phone className="size-5" />
-                                </button>
-                                <button className="p-3 bg-white rounded-xl shadow-sm text-gray-700 hover:text-blue-600 transition-colors">
-                                    <MessageSquare className="size-5" />
-                                </button>
-                            </div>
-                        </div>
-
-                        <button className="w-full py-3 bg-gray-900 text-white rounded-2xl font-bold hover:bg-gray-800 transition-colors">
-                            Emergency SOS
-                        </button>
-                    </div>
-                )}
-
-                {status === 'ongoing' && (
-                    <div className="text-center py-4">
-                        <div className="flex justify-center mb-4">
-                            <div className="size-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center animate-pulse">
-                                <Loader2 className="size-8 animate-spin-slow" />
-                            </div>
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">Trip in Progress</h3>
-                        <p className="text-gray-500 mb-6">You are exploring with {guide?.guideName}.</p>
-                        
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                            <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                 <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-1">Duration</p>
-                                 <p className="text-lg font-bold text-gray-800 tabular-nums">
-                                    {Math.floor((Date.now() - new Date(guide?.startTime)) / 1000 / 60)}m 
-                                    {(Math.floor((Date.now() - new Date(guide?.startTime)) / 1000) % 60).toString().padStart(2, '0')}s
-                                 </p>
-                            </div>
-                            <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                                 <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-1">Current Fare</p>
-                                 <p className="text-lg font-bold text-blue-600">₹{guide?.pricePerHour || 500}</p>
-                            </div>
-                        </div>
-
-                        {JSON.parse(localStorage.getItem('user'))?.role === 'guide' && (
-                            <button 
-                                onClick={onCancel} // In MapView, this should call handleEndTrip
-                                className="w-full py-4 bg-red-600 text-white rounded-2xl font-bold hover:bg-red-700 transition-colors shadow-lg shadow-red-100"
-                            >
-                                End Trip
-                            </button>
-                        )}
-                    </div>
-                )}
-
-                {status === 'completed' && (
-                    <div className="text-center py-4">
-                        <div className="flex justify-center mb-4">
-                            <div className="size-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
-                                <ShieldCheck className="size-8" />
-                            </div>
-                        </div>
-                        <h2 className="text-3xl font-black text-gray-900 mb-1">₹{guide?.totalPrice}</h2>
-                        <p className="text-gray-500 mb-6">Total fare for your trip</p>
-                        
-                        <div className="space-y-3 mb-6">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-gray-400">Guide</span>
-                                <span className="font-bold text-gray-900">{guide?.guideName}</span>
-                            </div>
-                            <div className="flex justify-between text-sm border-t pt-2">
-                                <span className="text-gray-400">Duration</span>
-                                <span className="font-bold text-gray-900">1 Hour</span>
-                            </div>
-                        </div>
-
-                        <button 
-                            onClick={() => window.location.reload()}
-                            className="w-full py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-colors"
-                        >
-                            Return to Home
-                        </button>
-                    </div>
-                )}
-            </div>
+  return (
+    <div className="fixed bottom-28 left-6 right-6 z-[1000] animate-slide-up">
+      <Card hover={false} className="shadow-2xl shadow-primary/10 border-primary/10 overflow-hidden relative">
+        {/* Background Decor */}
+        <div className="absolute top-0 right-0 p-8">
+           <div className={`size-32 rounded-full blur-3xl opacity-10 ${status === 'searching' ? 'bg-amber-400 animate-pulse' : 'bg-primary'}`} />
         </div>
-    );
+
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className={`size-12 rounded-2xl flex items-center justify-center ${
+                status === 'searching' ? 'bg-amber-50 text-amber-600' : 'bg-primary/5 text-primary'
+              }`}>
+                {status === 'searching' ? <Clock className="size-6 animate-spin" /> : <ShieldCheck className="size-6" />}
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-text-primary leading-tight">
+                  {status === 'searching' ? 'Finding a Guide...' : 
+                   status === 'accepted' ? 'Guide Arriving' : 'Trip in Progress'}
+                </h3>
+                <p className="text-[10px] font-black text-text-secondary uppercase tracking-widest opacity-60 mt-0.5">
+                  {status === 'searching' ? 'Checking availability' : 'Secure Booking Active'}
+                </p>
+              </div>
+            </div>
+            {status !== 'ongoing' && (
+                <button onClick={onCancel} className="p-2 hover:bg-surface rounded-xl transition-colors">
+                    <X className="size-5 text-text-secondary" />
+                </button>
+            )}
+          </div>
+
+          {(status === 'accepted' || status === 'ongoing') && guide && (
+            <div className="flex items-center gap-4 bg-surface/50 p-4 rounded-2xl mb-6 border border-white/50">
+              <div className="size-14 rounded-2xl overflow-hidden border-2 border-white shadow-sm">
+                 <img src={guide.profilePhoto || `https://api.dicebear.com/7.x/avataaars/svg?seed=${guide.name}`} className="size-full object-cover" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-black text-text-primary truncate">{guide.guideName || guide.name || 'Expert Guide'}</p>
+                <div className="flex items-center text-[10px] text-amber-500 font-black uppercase tracking-widest mt-1">
+                  <Star className="size-3 fill-current mr-1" /> {guide.rating || '5.0'}
+                </div>
+              </div>
+              {status === 'accepted' && otp && (
+                <div className="text-right">
+                  <p className="text-[9px] font-black text-text-secondary uppercase opacity-60">OTP</p>
+                  <p className="text-2xl font-black text-primary tracking-tighter">{otp}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {status === 'ongoing' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-primary p-5 rounded-[24px] text-white shadow-lg shadow-primary/20">
+                <p className="text-[9px] font-black opacity-60 uppercase mb-1 tracking-widest">Duration</p>
+                <p className="text-2xl font-black tabular-nums">{formatTime(timer)}</p>
+              </div>
+              <Card className="bg-white/80 p-5 rounded-[24px] border-primary/10">
+                <p className="text-[9px] font-black text-primary uppercase mb-1 tracking-widest">Fare Est.</p>
+                <p className="text-2xl font-black text-text-primary">₹{Math.ceil((timer / 3600)) * (guide?.pricePerHour || 500)}</p>
+              </Card>
+            </div>
+          )}
+
+          {status === 'ongoing' && (
+            <Button 
+              variant="danger"
+              className="w-full mt-6"
+              onClick={onCancel}
+            >
+               End Trip & Proceed to Payment
+            </Button>
+          )}
+
+          {status === 'searching' && (
+            <div className="flex items-center gap-3 mt-4 text-amber-600 text-[10px] font-black uppercase tracking-widest p-4 bg-amber-50 rounded-2xl border border-amber-100/50">
+               <Info className="size-4 shrink-0" />
+               Scanning 32km radius for top-rated guides...
+            </div>
+          )}
+        </div>
+      </Card>
+    </div>
+  );
 };
 
 export default BookingStatus;

@@ -174,3 +174,37 @@ exports.endTrip = async (req, res, next) => {
         res.status(400).json({ success: false, message: error.message });
     }
 };
+
+// @desc    Get user bookings
+// @route   GET /api/bookings/user-bookings
+// @access  Private
+exports.getUserBookings = async (req, res, next) => {
+    try {
+        const bookings = await Booking.find({ userId: req.user.id })
+            .populate('guideId', 'name profilePhoto rating')
+            .populate('locationId', 'name city')
+            .sort('-createdAt');
+        res.status(200).json({ success: true, data: bookings });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Get guide bookings
+// @route   GET /api/bookings/guide-bookings
+// @access  Private/Guide
+exports.getGuideBookings = async (req, res, next) => {
+    try {
+        const guide = await Guide.findOne({ userId: req.user.id });
+        if (!guide) {
+            return res.status(404).json({ success: false, message: 'Guide not found' });
+        }
+        const bookings = await Booking.find({ guideId: guide._id })
+            .populate('userId', 'name')
+            .populate('locationId', 'name city')
+            .sort('-createdAt');
+        res.status(200).json({ success: true, data: bookings });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};

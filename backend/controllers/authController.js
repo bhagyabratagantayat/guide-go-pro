@@ -43,30 +43,35 @@ exports.register = async (req, res, next) => {
 // @access  Public
 exports.login = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, role } = req.body;
 
         // Check for user
         const user = await User.findOne({ email }).select('+password');
 
         if (!user) {
-            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+            return res.status(401).json({ success: false, message: 'User not found' });
+        }
+
+        // Check role
+        if (user.role !== role) {
+            return res.status(401).json({ success: false, message: 'Invalid role selected' });
         }
 
         // Check if password matches
         const isMatch = await user.matchPassword(password);
 
         if (!isMatch) {
-            return res.status(401).json({ success: false, message: 'Invalid credentials' });
+            return res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
 
         // Check if guide is verified
-        if (user.role === 'guide') {
+        if (role === 'guide') {
             const Guide = require('../models/Guide');
             const guide = await Guide.findOne({ userId: user._id });
-            if (guide && !guide.isVerified) {
+            if (!guide || !guide.isVerified) {
                 return res.status(401).json({
                     success: false,
-                    message: 'Your guide account is not yet verified by admin'
+                    message: 'Your account is under review'
                 });
             }
         }
@@ -77,7 +82,7 @@ exports.login = async (req, res, next) => {
             name: user.name,
             email: user.email,
             role: user.role,
-            token: generateToken(user._id)
+            token: generateToken(user._id, user.role)
         });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
