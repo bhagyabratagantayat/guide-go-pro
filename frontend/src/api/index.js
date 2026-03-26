@@ -8,6 +8,7 @@ export const getLocations = (search = '') => api.get(`/locations?search=${search
 export const getNearbyGuides = (lat, lng) => api.get(`/guides/nearby?lat=${lat}&lng=${lng}`);
 export const loginUser = (credentials) => api.post('/auth/login', credentials);
 export const registerUser = (userData) => api.post('/auth/register', userData);
+export const toggleGuideStatus = () => api.put('/guides/toggle-status');
 
 // Admin APIs
 export const getAdminStats = () => api.get('/admin/stats');

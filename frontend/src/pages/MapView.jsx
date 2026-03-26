@@ -34,6 +34,8 @@ const MapView = () => {
   const lng = parseFloat(query.get('lng')) || 85.7865;
   const name = query.get('name') || 'Your Location';
 
+  const locationId = query.get('locationId');
+
   const [guides, setGuides] = useState([]);
   const [bookingStatus, setBookingStatus] = useState('idle'); // idle, searching, accepted, ongoing
   const [activeBooking, setActiveBooking] = useState(null);
@@ -119,9 +121,8 @@ const MapView = () => {
 
   const handleBookNow = async () => {
     try {
+        if (!locationId) return alert('Location ID missing. Please search again.');
         setBookingStatus('searching');
-        // Find closest location ID (or use first from seeded)
-        const locationId = "60f7c2b0e6b3c234a4a1a1a1"; // Placeholder ID
         const res = await api.post('/bookings/create', {
             locationId,
             lat,
@@ -157,6 +158,18 @@ const MapView = () => {
     }
   };
 
+  const [isOnline, setIsOnline] = useState(false);
+
+  const handleToggleStatus = async () => {
+    try {
+        const res = await api.put('/guides/toggle-status');
+        setIsOnline(res.data.isOnline);
+        alert(res.data.message);
+    } catch (err) {
+        alert('Failed to toggle status');
+    }
+  };
+
   return (
     <div className="relative h-screen w-full flex flex-col">
       {/* Top Bar */}
@@ -167,9 +180,19 @@ const MapView = () => {
         >
           <ArrowLeft className="size-6 text-gray-800" />
         </button>
-        <div className="flex-1 mx-4 p-3 bg-white rounded-2xl shadow-lg border border-gray-100 flex items-center">
-            <MapPin className="text-blue-500 mr-2 size-5" />
-            <span className="font-semibold text-gray-800 truncate">{name}</span>
+        <div className="flex-1 mx-4 p-3 bg-white rounded-2xl shadow-lg border border-gray-100 flex items-center justify-between">
+            <div className="flex items-center truncate">
+                <MapPin className="text-blue-500 mr-2 size-5 shrink-0" />
+                <span className="font-semibold text-gray-800 truncate">{name}</span>
+            </div>
+            {user.role === 'guide' && (
+                <button 
+                    onClick={handleToggleStatus}
+                    className={`ml-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter transition-all shadow-sm ${isOnline ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400'}`}
+                >
+                    {isOnline ? 'Online' : 'Offline'}
+                </button>
+            )}
         </div>
       </div>
 

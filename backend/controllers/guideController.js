@@ -136,3 +136,26 @@ exports.updateLocation = async (req, res, next) => {
         res.status(400).json({ success: false, message: error.message });
     }
 };
+
+// @desc    Toggle online status
+// @route   PUT /api/guides/toggle-status
+// @access  Private/Guide
+exports.toggleStatus = async (req, res, next) => {
+    try {
+        const guide = await Guide.findOne({ userId: req.user.id });
+        if (!guide) {
+            return res.status(404).json({ success: false, message: 'Guide profile not found' });
+        }
+
+        guide.isOnline = !guide.isOnline;
+        await guide.save();
+
+        res.status(200).json({
+            success: true,
+            message: `Guide is now ${guide.isOnline ? 'online' : 'offline'}`,
+            isOnline: guide.isOnline
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};

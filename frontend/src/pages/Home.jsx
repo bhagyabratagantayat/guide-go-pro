@@ -6,7 +6,24 @@ import { getLocations } from '../api';
 const Home = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState([]);
+  const [userCoords, setUserCoords] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserCoords({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          });
+        },
+        (error) => {
+          console.warn("Location permission denied. Using default center.");
+        }
+      );
+    }
+  }, []);
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -27,7 +44,7 @@ const Home = () => {
   }, [searchTerm]);
 
   const handleSelect = (loc) => {
-    navigate(`/map?lat=${loc.coordinates.coordinates[1]}&lng=${loc.coordinates.coordinates[0]}&name=${loc.name}`);
+    navigate(`/map?lat=${loc.coordinates.coordinates[1]}&lng=${loc.coordinates.coordinates[0]}&name=${loc.name}&locationId=${loc._id}`);
   };
 
   return (
