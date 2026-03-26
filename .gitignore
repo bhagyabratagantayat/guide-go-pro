@@ -1,0 +1,21 @@
+# Node
+node_modules/
+dist/
+build/
+.DS_Store
+
+# Env
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Backend specific
+backend/node_modules/
+backend/.env
+
+# Frontend specific
+frontend/node_modules/
+frontend/dist/
+frontend/.env
