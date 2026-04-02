@@ -18,12 +18,24 @@ const bookingSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['searching', 'accepted', 'ongoing', 'completed', 'cancelled'],
-        default: 'searching'
+        enum: ['pending', 'accepted', 'ongoing', 'completed', 'cancelled'],
+        default: 'pending'
+    },
+    paymentType: {
+        type: String,
+        enum: ['cash', 'upi'],
+        default: 'cash'
+    },
+    duration: {
+        type: Number,
+        required: [true, 'Please specify tour duration in hours'],
+        default: 1
     },
     otp: {
         type: String,
-        required: true
+        default: function() {
+            return Math.floor(1000 + Math.random() * 9000).toString();
+        }
     },
     startTime: {
         type: Date
@@ -33,9 +45,24 @@ const bookingSchema = new mongoose.Schema({
     },
     pricePerHour: {
         type: Number,
-        default: 500 // Base price per hour
+        default: 500 
     },
     totalPrice: {
+        type: Number,
+        default: 0
+    },
+    isPaid: {
+        type: Boolean,
+        default: false
+    },
+    paymentId: {
+        type: String
+    },
+    adminCommission: {
+        type: Number,
+        default: 0
+    },
+    guidePayout: {
         type: Number,
         default: 0
     }

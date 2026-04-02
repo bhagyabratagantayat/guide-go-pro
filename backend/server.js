@@ -9,6 +9,7 @@ dotenv.config();
 
 // Connect to database
 connectDB();
+require('./utils/seedAdmin')();
 
 const app = express();
 
@@ -19,12 +20,21 @@ app.use(express.json());
 app.use(cors());
 
 // Mount routers
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/guides', require('./routes/guideRoutes'));
-app.use('/api/admin', require('./routes/adminRoutes'));
-app.use('/api/locations', require('./routes/locationRoutes'));
-app.use('/api/bookings', require('./routes/bookingRoutes'));
-app.use('/api/test', require('./routes/testRoutes'));
+const authRoutes = require('./routes/authRoutes');
+const guideRoutes = require('./routes/guideRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const locationRoutes = require('./routes/locationRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const testRoutes = require('./routes/testRoutes');
+
+app.use('/api/auth', authRoutes);
+app.use('/api/guides', guideRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/locations', locationRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/test', testRoutes);
 
 // Error handler
 app.use(errorHandler);
