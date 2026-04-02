@@ -1,0 +1,56 @@
+# Requirements
+
+## v1 Requirements
+
+### Authentication
+- [ ] **AUTH-01**: User, Guide, and Admin can register and login.
+- [ ] **AUTH-02**: System uses JWT authentication for session management.
+- [ ] **AUTH-03**: Protected routes enforce Role-Based routing mechanisms.
+- [ ] **AUTH-04**: Guides can only successfully log in if their `isVerified` flag is true.
+
+### Location System
+- [ ] **LOC-01**: `locations` collection exists with `name`, `city`, `coordinates`(GeoJSON), and `isServiceAvailable`.
+- [ ] **LOC-02**: `GET /locations?search=` API is available to search for locations.
+
+### Guide System
+- [ ] **GDE-01**: Guides register by providing a profile photo, Aadhar, and PAN.
+- [ ] **GDE-02**: Admin can approve or reject a Guide's registration.
+- [ ] **GDE-03**: Guide collection contains `isVerified`, `isOnline`, `location`, `rating`, and `languages` preferences.
+- [ ] **GDE-04**: Guides can toggle a "Go Live" status on their dashboard.
+- [ ] **GDE-05**: When "Live", a Guide sends their location to the server every 5 seconds via Socket.io.
+
+### Booking & Matching
+- [ ] **BOOK-01**: Users can search for a location, select preferences (language, budget), and click "Book".
+- [ ] **BOOK-02**: Upon "Book", backend creates a booking with status `#searching` and generates a 4-digit OTP.
+- [ ] **BOOK-03**: Smart Matching logic finds Guides based on nearest geo-query, language, rating, and availability.
+- [ ] **BOOK-04**: Socket.io broadcasts the booking request to matched nearby Guides.
+- [ ] **BOOK-05**: Guides can Accept or Reject the broadcast.
+- [ ] **BOOK-06**: The first Guide to Accept claims the booking; all other Guides are blocked.
+
+### Trip Tracking
+- [ ] **TRIP-01**: User receives the 4-digit OTP; Guide enters OTP to officially start the trip.
+- [ ] **TRIP-02**: System records `startTime` (OTP verified) and `endTime` (trip ends).
+- [ ] **TRIP-03**: Price is calculated as (`hours` * `pricePerHour`).
+- [ ] **TRIP-04**: While trip is active, the Guide updates location every 5 seconds which displays on the User's Map.
+
+### Admin Dashboard
+- [ ] **ADM-01**: Admin dashboard shows metrics for total users, total guides, bookings, and revenue.
+- [ ] **ADM-02**: Admins can view and delete Users.
+- [ ] **ADM-03**: Admins can approve or reject Guides.
+- [ ] **ADM-04**: Admins can view all Bookings.
+- [ ] **ADM-05**: Admins can add, edit, and delete Places (Locations).
+- [ ] **ADM-06**: Admins can set global platform settings like `pricePerHour`.
+
+### UI & Architecture
+- [ ] **SYS-01**: The UI is a professional mobile-first design using Tailwind CSS, glassmorphism cards, gradient buttons, and floating navbars.
+- [ ] **SYS-02**: The infrastructure employs MongoDB Atlas, Render (Backend), Vercel (Frontend), and Cloudinary.
+- [ ] **SYS-03**: The codebase is cleanly module-separated using async/await syntax.
+
+## v2 Requirements
+(None deferred currently)
+
+## Out of Scope
+- Direct payments via external gateways like Stripe — Initial PRD focuses on the booking, OTP, and tracking flow, not literal transaction processing.
+
+## Phase Traceability
+*(To be populated by ROADMAP.md)*
