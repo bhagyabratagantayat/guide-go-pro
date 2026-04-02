@@ -9,25 +9,29 @@ const { getIO } = require('../utils/socket');
 // @access  Private
 exports.createBooking = async (req, res, next) => {
     try {
-        const { locationId, lat, lng } = req.body;
+        const { locationId, duration, paymentType, lat, lng } = req.body;
 
         if (!locationId || !lat || !lng) {
             return res.status(400).json({ success: false, message: 'Please provide locationId, lat, and lng' });
         }
 
-        // Fetch current price per hour from admin config
+        const location = await Location.findById(locationId);
+        if (!location) {
+            return res.status(404).json({ success: false, message: 'Location not found' });
+        }
+
+        // Fetch current price per hour from admin config or use default
         const config = await AdminConfig.findOne();
         const pricePerHour = config ? config.pricePerHour : 500;
-
-        // Generate 4-digit OTP
-        const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
         const booking = await Booking.create({
             userId: req.user.id,
             locationId,
-            otp,
+            duration: duration || 1,
+            paymentType: paymentType || 'cash',
             pricePerHour,
-            status: 'searching'
+            totalPrice: (duration || 1) * pricePerHour,
+            status: 'pending'
         });
 
         // Broadcast to nearby guides
@@ -37,7 +41,7 @@ exports.createBooking = async (req, res, next) => {
                 $geoNear: {
                     near: { type: 'Point', coordinates: [parseFloat(lng), parseFloat(lat)] },
                     distanceField: 'distance',
-                    maxDistance: 5000, // 5km
+                    maxDistance: 10000, // 10km for broader reach
                     spherical: true,
                     query: { isVerified: true, isOnline: true, currentBooking: null }
                 }
@@ -45,10 +49,12 @@ exports.createBooking = async (req, res, next) => {
         ]);
 
         nearbyGuides.forEach(guide => {
-            io.to(guide.userId.toString()).emit('newBooking', {
+            io.to(guide.userId.toString()).emit('newBookingRequest', {
                 bookingId: booking._id,
                 locationId,
-                distance: guide.distance,
+                locationName: location.name,
+                duration: booking.duration,
+                totalPrice: booking.totalPrice,
                 userName: req.user.name
             });
         });
@@ -64,39 +70,44 @@ exports.createBooking = async (req, res, next) => {
 // @access  Private/Guide
 exports.acceptBooking = async (req, res, next) => {
     try {
-        const booking = await Booking.findById(req.params.id);
-
-        if (!booking) {
-            return res.status(404).json({ success: false, message: 'Booking not found' });
-        }
-
-        // Handle race condition: check if already accepted
-        if (booking.status !== 'searching') {
-            return res.status(400).json({ success: false, message: 'Booking already accepted' });
-        }
-
         const guide = await Guide.findOne({ userId: req.user.id });
         if (!guide) {
             return res.status(404).json({ success: false, message: 'Guide profile not found' });
         }
 
-        // Update booking
-        booking.guideId = guide._id;
-        booking.status = 'accepted';
-        await booking.save();
+        // ATOMIC UPDATE to prevent race conditions
+        const booking = await Booking.findOneAndUpdate(
+            { _id: req.params.id, status: 'pending' },
+            { 
+                guideId: guide._id, 
+                status: 'accepted' 
+            },
+            { new: true }
+        );
+
+        if (!booking) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Booking not available or already accepted by another guide' 
+            });
+        }
 
         // Update guide
         guide.currentBooking = booking._id;
         await guide.save();
 
-        // Notify user/room
+        // Notify user
         const io = getIO();
         io.to(booking.userId.toString()).emit('bookingAccepted', {
             bookingId: booking._id,
             guideName: guide.name,
             guidePhone: guide.phone,
-            profilePhoto: guide.profilePhoto
+            profilePhoto: guide.profilePhoto,
+            otp: booking.otp // Send OTP to user upon acceptance
         });
+
+        // Notify other guides that this booking is taken
+        io.emit('bookingTaken', { bookingId: booking._id });
 
         res.status(200).json({ success: true, data: booking });
     } catch (error) {
@@ -204,6 +215,47 @@ exports.getGuideBookings = async (req, res, next) => {
             .populate('locationId', 'name city')
             .sort('-createdAt');
         res.status(200).json({ success: true, data: bookings });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Cancel booking
+// @route   POST /api/bookings/cancel/:id
+// @access  Private/User
+exports.cancelBooking = async (req, res, next) => {
+    try {
+        const booking = await Booking.findById(req.params.id);
+
+        if (!booking) {
+            return res.status(404).json({ success: false, message: 'Booking not found' });
+        }
+
+        // Only allow user who created it to cancel
+        if (booking.userId.toString() !== req.user.id) {
+            return res.status(403).json({ success: false, message: 'User not authorized to cancel this booking' });
+        }
+
+        if (booking.status !== 'pending' && booking.status !== 'accepted') {
+            return res.status(400).json({ success: false, message: 'Only pending or accepted bookings can be cancelled' });
+        }
+
+        booking.status = 'cancelled';
+        await booking.save();
+
+        if (booking.guideId) {
+            // Free the guide
+            await Guide.findByIdAndUpdate(booking.guideId, { currentBooking: null });
+            
+            // Notify the specific guide over socket
+            const io = getIO();
+            const guide = await Guide.findById(booking.guideId);
+            if (guide) {
+                io.to(guide.userId.toString()).emit('bookingCancelled', { bookingId: booking._id });
+            }
+        }
+
+        res.status(200).json({ success: true, message: 'Booking cancelled successfully', data: booking });
     } catch (error) {
         res.status(400).json({ success: false, message: error.message });
     }

@@ -1,10 +1,12 @@
+const express = require('express');
 const { 
     createBooking, 
     acceptBooking, 
     startTrip, 
     endTrip,
     getUserBookings,
-    getGuideBookings
+    getGuideBookings,
+    cancelBooking
 } = require('../controllers/bookingController');
 const { protect } = require('../middleware/authMiddleware');
 const { authorize } = require('../middleware/roleMiddleware');
@@ -17,6 +19,7 @@ router.post('/create', authorize('user'), createBooking);
 router.post('/accept/:id', authorize('guide'), acceptBooking);
 router.post('/start', authorize('guide'), startTrip);
 router.post('/end', authorize('guide'), endTrip);
+router.post('/cancel/:id', authorize('user'), cancelBooking);
 router.get('/user-bookings', authorize('user'), getUserBookings);
 router.get('/guide-bookings', authorize('guide'), getGuideBookings);
 
