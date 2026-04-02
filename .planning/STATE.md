@@ -8,9 +8,9 @@ See: `.planning/PROJECT.md` (updated 2026-04-02)
 **Current focus:** Phase 1: Database & Core Auth
 
 ## Phase Status
-- Current Phase: None (Phase 3 Complete)
-- Next Phase: Phase 4
-- Completed: 3/7 phases
+- Current Phase: None (Phase 4 Complete)
+- Next Phase: Phase 5
+- Completed: 4/7 phases
 
 ## Session Continuity
 - Database verified and `authorizeRoles` added to middleware layout.
@@ -18,6 +18,7 @@ See: `.planning/PROJECT.md` (updated 2026-04-02)
 - Configured Admin REST logic for Locations mapping over MongoDB.
 - Activated `?search=` `$regex` controller schema.
 - Added Profile Document onboarding support directly inside `authController.js`.
+- Bridged REST updateLocation API directly into the Socket.io IO pipeline schema.
 
 ## Key Todos
-- Start Phase 4: Real-time & Go Live!
+- Start Phase 5: Search & Book!

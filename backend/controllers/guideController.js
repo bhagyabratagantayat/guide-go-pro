@@ -97,6 +97,11 @@ exports.getNearbyGuides = async (req, res, next) => {
             data: guides
         });
     } catch (error) {
+        console.error('[MAP API ERROR]', { 
+            message: error.message, 
+            query: req.query,
+            stack: error.stack 
+        });
         res.status(400).json({ success: false, message: error.message });
     }
 };
@@ -127,6 +132,17 @@ exports.updateLocation = async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Guide profile not found' });
         }
 
+        try {
+            const socketUtil = require('../utils/socket');
+            const io = socketUtil.getIO();
+            io.emit('guideLocationUpdate', {
+                guideId: guide._id,
+                location: guide.location
+            });
+        } catch (err) {
+            console.error('Socket emission failed', err);
+        }
+
         res.status(200).json({
             success: true,
             message: 'Location updated successfully',
@@ -142,13 +158,38 @@ exports.updateLocation = async (req, res, next) => {
 // @access  Private/Guide
 exports.toggleStatus = async (req, res, next) => {
     try {
-        const guide = await Guide.findOne({ userId: req.user.id });
+        let guide = await Guide.findOne({ userId: req.user.id });
+        
+        // Resilience: Create profile if missing for guide role
         if (!guide) {
-            return res.status(404).json({ success: false, message: 'Guide profile not found' });
+            const user = await User.findById(req.user.id);
+            if (!user || user.role !== 'guide') {
+                return res.status(403).json({ success: false, message: 'Unauthorized profile creation' });
+            }
+            guide = await Guide.create({
+                userId: user._id,
+                name: user.name,
+                email: user.email,
+                phone: '',
+                location: { type: 'Point', coordinates: [85.7865, 20.2619] }
+            });
         }
 
         guide.isOnline = !guide.isOnline;
         await guide.save();
+
+        // Emit Socket Event for real-time Map refresh
+        try {
+            const socketUtil = require('../utils/socket');
+            const io = socketUtil.getIO();
+            io.emit('guideStatusUpdate', {
+                guideId: guide._id,
+                isOnline: guide.isOnline,
+                location: guide.location
+            });
+        } catch (err) {
+            console.error('Socket notification failed', err);
+        }
 
         res.status(200).json({
             success: true,
