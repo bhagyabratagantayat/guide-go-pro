@@ -8,13 +8,15 @@ See: `.planning/PROJECT.md` (updated 2026-04-02)
 **Current focus:** Phase 1: Database & Core Auth
 
 ## Phase Status
-- Current Phase: None (Phase 1 Complete)
-- Next Phase: Phase 2
-- Completed: 1/7 phases
+- Current Phase: None (Phase 2 Complete)
+- Next Phase: Phase 3
+- Completed: 2/7 phases
 
 ## Session Continuity
 - Database verified and `authorizeRoles` added to middleware layout.
 - `backend/.env.example` formalized.
+- Configured Admin REST logic for Locations mapping over MongoDB.
+- Activated `?search=` `$regex` controller schema.
 
 ## Key Todos
-- Start Phase 2!
+- Start Phase 3: Guide Onboarding!

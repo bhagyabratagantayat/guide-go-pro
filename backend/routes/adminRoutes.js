@@ -13,8 +13,18 @@ router.get('/stats', adminController.getStats);
 router.get('/config', adminController.getConfig);
 router.put('/config', adminController.updateConfig);
 
-router.get('/pending-guides', adminController.getPendingGuides);
-router.put('/approve/:id', adminController.approveGuide);
-router.delete('/reject/:id', adminController.rejectGuide);
+router.get('/users', adminController.getUsers);
+router.delete('/users/:id', adminController.deleteUser);
+
+router.get('/guides', adminController.getGuides);
+router.put('/guides/approve/:id', adminController.approveGuide);
+router.delete('/guides/reject/:id', adminController.rejectGuide);
+
+router.get('/bookings', adminController.getBookings);
+router.get('/reports', adminController.getReports);
+
+router.post('/locations', adminController.addLocation);
+router.put('/locations/:id', adminController.updateLocation);
+router.delete('/locations/:id', adminController.deleteLocation);
 
 module.exports = router;
