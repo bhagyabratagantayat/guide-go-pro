@@ -8,12 +8,13 @@ See: `.planning/PROJECT.md` (updated 2026-04-02)
 **Current focus:** Phase 1: Database & Core Auth
 
 ## Phase Status
-- Current Phase: None (Project Initialized)
-- Next Phase: Phase 1
-- Completed: 0/7 phases
+- Current Phase: None (Phase 1 Complete)
+- Next Phase: Phase 2
+- Completed: 1/7 phases
 
 ## Session Continuity
-*(Empty state - newly initialized)*
+- Database verified and `authorizeRoles` added to middleware layout.
+- `backend/.env.example` formalized.
 
 ## Key Todos
-- Start Phase 1!
+- Start Phase 2!

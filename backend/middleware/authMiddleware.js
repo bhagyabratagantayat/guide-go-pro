@@ -31,4 +31,13 @@ const protect = async (req, res, next) => {
     }
 };
 
-module.exports = { protect };
+const authorizeRoles = (...roles) => {
+    return (req, res, next) => {
+        if (!req.user || !roles.includes(req.user.role)) {
+            return res.status(403).json({ success: false, message: `Access Denied: User role '${req.user ? req.user.role : 'unknown'}' is not authorized` });
+        }
+        next();
+    };
+};
+
+module.exports = { protect, authorizeRoles };
