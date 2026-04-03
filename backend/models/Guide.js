@@ -6,6 +6,15 @@ const guideSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    pricePerHour: {
+        type: Number,
+        required: [true, 'Please add price per hour']
+    },
+    tier: {
+        type: String,
+        enum: ['Basic', 'Standard', 'Pro'],
+        default: 'Basic'
+    },
     name: {
         type: String,
         required: [true, 'Please add a name']
@@ -17,7 +26,7 @@ const guideSchema = new mongoose.Schema({
     },
     phone: {
         type: String,
-        required: [true, 'Please add a phone number']
+        required: false
     },
     profilePhoto: {
         type: String,
@@ -39,8 +48,7 @@ const guideSchema = new mongoose.Schema({
             enum: ['Point']
         },
         coordinates: {
-            type: [Number],
-            index: '2dsphere'
+            type: [Number]
         }
     },
     isOnline: {

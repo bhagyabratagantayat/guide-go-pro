@@ -23,11 +23,19 @@ const GuideCard = ({ guide, onBook }) => {
         <div className="flex items-center gap-2 mb-1">
           <h4 className="text-lg font-black text-text-primary leading-tight truncate">
             {guide.name}
+            <span className="text-[8px] font-black text-text-secondary opacity-30 ml-2 uppercase tracking-tighter">
+              ID: {guide._id?.slice(-6)}
+            </span>
           </h4>
           {guide.isVerified && <ShieldCheck className="size-4 text-primary" />}
         </div>
         
-        <div className="flex items-center gap-4 mb-3">
+        <div className="flex items-center gap-3 mb-3">
+          {guide.isOnline && (
+            <div className="flex items-center text-accent font-black text-[10px] uppercase tracking-widest bg-accent/5 px-2 py-1 rounded-lg">
+              Active
+            </div>
+          )}
           <div className="flex items-center text-amber-500 font-black text-[10px] uppercase tracking-widest bg-amber-50 px-2 py-1 rounded-lg">
             <Star className="size-3 fill-current mr-1" />
             {guide.rating || '5.0'}

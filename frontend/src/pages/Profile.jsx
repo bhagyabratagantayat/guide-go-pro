@@ -6,11 +6,16 @@ import Button from '../components/ui/Button';
 
 const Profile = () => {
   const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user')) || { name: 'Explorer', role: 'tourist' };
+  let user = { name: 'Explorer', role: 'user' };
+  try {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) user = JSON.parse(savedUser);
+  } catch (err) { console.error('Error parsing user data', err); }
 
   const handleLogout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('token');
+    localStorage.removeItem('role');
     navigate('/login');
   };
 

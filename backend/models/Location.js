@@ -6,14 +6,19 @@ const locationSchema = new mongoose.Schema({
         required: [true, 'Please add a location name'],
         unique: true
     },
-    city: {
+    description: {
         type: String,
-        required: [true, 'Please add a city']
+        required: [true, 'Please add a description']
+    },
+    image: {
+        type: String,
+        default: 'no-image.jpg'
     },
     coordinates: {
-        // GeoJSON Point
+        // Center point of the location for search
         type: {
             type: String,
+            default: 'Point',
             enum: ['Point']
         },
         coordinates: {
@@ -21,15 +26,17 @@ const locationSchema = new mongoose.Schema({
             index: '2dsphere'
         }
     },
-    isServiceAvailable: {
+    isPopular: {
         type: Boolean,
-        default: true
+        default: false
+    },
+    category: {
+        type: String,
+        enum: ['Historical', 'Religious', 'Nature', 'Uncategorized'],
+        default: 'Uncategorized'
     }
 }, {
     timestamps: true
 });
-
-// Add Geospatial Index
-locationSchema.index({ coordinates: '2dsphere' });
 
 module.exports = mongoose.model('Location', locationSchema);

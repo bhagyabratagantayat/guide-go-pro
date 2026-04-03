@@ -4,7 +4,8 @@ import { Mail, Lock, User, ShieldCheck, ChevronDown, ArrowRight, Eye, EyeOff, Lo
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
-import { loginUser } from '../api';
+import { loginUser, testLogin } from '../api';
+import { CONFIG } from '../config';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -25,8 +26,31 @@ const Login = () => {
     admin: ShieldCheck
   };
 
+  const handleTestLogin = async (selectedRole) => {
+    try {
+      setLoading(true);
+      setError('');
+      const res = await testLogin(selectedRole);
+      const { token, role } = res.data;
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(res.data));
+      localStorage.setItem('role', role);
+      if (role === 'admin') navigate('/admin');
+      else if (role === 'guide') navigate('/guide');
+      else navigate('/');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Test login failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.email || !formData.password) {
+      setError('Please enter your credentials');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -34,13 +58,12 @@ const Login = () => {
       const { token, role } = res.data;
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(res.data));
-      
-      // Redirect based on role
+      localStorage.setItem('role', role);
       if (role === 'admin') navigate('/admin');
       else if (role === 'guide') navigate('/guide');
       else navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(err.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -49,6 +72,12 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-surface flex flex-col justify-center px-6 py-12 animate-fade-in">
       <div className="flex flex-col items-center mb-10">
+         {CONFIG.TEST_MODE && (
+           <div className="mb-4 px-4 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-full flex items-center gap-2 animate-pulse">
+             <ShieldCheck className="size-3 text-amber-500" />
+             <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest">Test Mode Active • Auto-Login Enabled</span>
+           </div>
+         )}
          <div className="size-16 bg-primary/10 rounded-[24px] flex items-center justify-center text-primary mb-6 shadow-2xl shadow-primary/20">
             <LogIn className="size-8" />
          </div>
@@ -123,6 +152,41 @@ const Login = () => {
           <Button type="submit" className="w-full h-14 group" loading={loading}>
             Sign In <ArrowRight className="size-4 ml-2 group-hover:translate-x-1 transition-transform" />
           </Button>
+
+          {CONFIG.TEST_MODE && (
+            <div className="pt-6 border-t border-gray-50 space-y-4">
+              <div className="flex items-center gap-2">
+                 <div className="h-px flex-1 bg-gray-100" />
+                 <span className="text-[9px] font-black text-text-secondary uppercase tracking-[0.2em] opacity-40">Quick Access (Dev)</span>
+                 <div className="h-px flex-1 bg-gray-100" />
+              </div>
+              <div className="grid grid-cols-1 gap-2">
+                  <button 
+                    type="button"
+                    onClick={() => handleTestLogin('admin')}
+                    className="h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all active:scale-95"
+                  >
+                    <ShieldCheck size={14} /> Login as Admin
+                  </button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button 
+                      type="button"
+                      onClick={() => handleTestLogin('guide')}
+                      className="h-12 bg-accent/10 text-accent rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-accent/20 transition-all active:scale-95"
+                    >
+                      <Navigation size={14} /> Guide
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => handleTestLogin('user')}
+                      className="h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-primary/20 transition-all active:scale-95"
+                    >
+                      <User size={14} /> Tourist
+                    </button>
+                  </div>
+              </div>
+            </div>
+          )}
         </form>
 
         <div className="mt-8 text-center text-sm font-medium text-text-secondary">
